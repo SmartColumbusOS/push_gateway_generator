@@ -22,7 +22,6 @@ defmodule PushGatewayGenerator.MixProject do
 
   defp deps do
     [
-      {:elsa, "~> 0.11.1"},
       {:jason, "~> 1.1"},
       {:kitt, "~> 0.3.0"},
       {:distillery, "~> 2.1.1"},

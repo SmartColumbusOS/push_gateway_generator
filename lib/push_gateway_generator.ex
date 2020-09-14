@@ -16,8 +16,6 @@ defmodule PushGatewayGenerator do
     port = Keyword.get(init_args, :port)
     rate = Keyword.get(init_args, :rate)
 
-    Logger.info(fn -> "populating message loop with" end)
-
     message_loop =
       Keyword.get(init_args, :message_loop)
       |> Enum.map(&Kitt.encode!/1)
@@ -27,7 +25,7 @@ defmodule PushGatewayGenerator do
     {:ok, socket} = :gen_udp.open(0)
 
     Logger.info(fn ->
-      "scheduling to send a #{inspect(rate)} messages every second to #{inspect(address)}"
+      "scheduling to send #{inspect(rate)} messages every second to #{inspect(address)}"
     end)
 
     startup_jitter = :rand.uniform(10_000)
@@ -40,20 +38,23 @@ defmodule PushGatewayGenerator do
   end
 
   def handle_info(:push_message, %{socket: socket, address: address, port: port, message_loop: message_loop, rate: rate} = state) do
-    timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
-
-    Logger.debug(fn -> "sending #{inspect(rate)} messages to #{inspect(address)}" end)
-
     {messages, rest} = Enum.split(message_loop, rate)
-    Enum.each(messages, fn message ->
-      :gen_udp.send(
-        socket,
-        address,
-        port,
-        Jason.encode!(%{"timestamp" => timestamp, "deviceSource" => "udp-source-socket", "payloadData" => message})
-      )
+
+    Task.start(fn ->
+      timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
+
+      Logger.debug(fn -> "sending #{inspect(rate)} messages to #{inspect(address)}" end)
+
+      Enum.each(messages, fn message ->
+        :gen_udp.send(
+          socket,
+          address,
+          port,
+          Jason.encode!(%{"timestamp" => timestamp, "deviceSource" => "udp-source-socket", "payloadData" => message})
+        )
+      end)
+      Logger.debug(fn -> "done sending #{inspect(rate)} messages to #{inspect(address)}" end)
     end)
-    Logger.debug(fn -> "done sending #{inspect(rate)} messages to #{inspect(address)}" end)
 
     {:noreply, %{state | message_loop: rest ++ messages}}
   end
