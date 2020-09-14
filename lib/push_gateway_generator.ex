@@ -25,30 +25,30 @@ defmodule PushGatewayGenerator do
 
     {:ok, socket} = :gen_udp.open(0)
 
-    send_interval = trunc(1000 / rate)
-
     Logger.info(fn ->
-      "scheduling to send a message every #{inspect(send_interval)} milliseconds to #{inspect(address)}"
+      "scheduling to send a #{inspect(rate)} messages every second to #{inspect(address)}"
     end)
 
-    :timer.send_interval(send_interval, :push_message)
+    :timer.send_interval(1000, :push_message)
 
-    {:ok, %{socket: socket, address: address, port: port, message_loop: message_loop}}
+    {:ok, %{socket: socket, address: address, port: port, rate: rate, message_loop: message_loop}}
   end
 
-  def handle_info(:push_message, %{socket: socket, address: address, port: port, message_loop: message_loop} = state) do
-    [message | rest] = message_loop
+  def handle_info(:push_message, %{socket: socket, address: address, port: port, message_loop: message_loop, rate: rate} = state) do
     timestamp = DateTime.utc_now() |> DateTime.to_unix(:millisecond)
 
-    Logger.debug(fn -> "sending a message to #{inspect(address)}" end)
+    Logger.debug(fn -> "sending #{inspect(rate)} messages to #{inspect(address)}" end)
 
-    :gen_udp.send(
-      socket,
-      address,
-      port,
-      Jason.encode!(%{"timestamp" => timestamp, "deviceSource" => "udp-source-socket", "payloadData" => message})
-    )
+    {messages, rest} = Enum.split(message_loop, rate)
+    Enum.each(messages, fn message ->
+      :gen_udp.send(
+        socket,
+        address,
+        port,
+        Jason.encode!(%{"timestamp" => timestamp, "deviceSource" => "udp-source-socket", "payloadData" => message})
+      )
+    end)
 
-    {:noreply, %{state | message_loop: rest ++ [message]}}
+    {:noreply, %{state | message_loop: rest ++ messages}}
   end
 end
