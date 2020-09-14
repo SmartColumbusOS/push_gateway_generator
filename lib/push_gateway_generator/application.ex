@@ -4,22 +4,27 @@ defmodule PushGatewayGenerator.Application do
   require Logger
 
   def start(_type, _args) do
-    rate = System.get_env("RATE")
-    |> String.to_integer()
+    rate =
+      System.get_env("RATE")
+      |> String.to_integer()
 
     destination_address = System.get_env("DESTINATION_ADDRESS")
     destination_port = System.get_env("DESTINATION_PORT")
 
     Logger.info(fn -> "Loading message loop from file" end)
-    messages = System.get_env("MESSAGE_FILE")
-    |> File.read!()
-    |> :erlang.binary_to_term()
+
+    messages =
+      System.get_env("MESSAGE_FILE")
+      |> File.read!()
+      |> :erlang.binary_to_term()
+
     Logger.info(fn -> "Done loading message loop from file" end)
 
     children =
       [
         {
-          PushGatewayGenerator, [
+          PushGatewayGenerator,
+          [
             rate: rate,
             message_loop: messages,
             port: destination_port,
