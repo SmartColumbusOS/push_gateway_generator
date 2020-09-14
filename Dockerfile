@@ -12,12 +12,14 @@ RUN mix local.hex --force && \
 RUN MIX_ENV=prod mix distillery.release
 
 FROM alpine:3.9
-ENV REPLACE_OS_VARS=true
+ENV REPLACE_OS_VARS=true \
+    MESSAGE_FILE=/messages.etf
 RUN apk upgrade && \
     apk add --no-cache bash openssl && \
     rm -rf /var/cache/**/*
 WORKDIR /app
 COPY --from=builder /app/_build/prod/rel/push_gateway_generator/ .
+COPY messages.etf ${MESSAGE_FILE}
 ENV PORT=4000
 EXPOSE ${PORT}
 CMD ["bin/push_gateway_generator", "foreground"]
