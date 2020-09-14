@@ -30,6 +30,10 @@ defmodule PushGatewayGenerator do
       "scheduling to send a #{inspect(rate)} messages every second to #{inspect(address)}"
     end)
 
+    startup_jitter = :rand.uniform(10_000)
+    Logger.info(fn -> "starting with jitter of #{inspect(startup_jitter)}" end)
+    Process.sleep(startup_jitter)
+
     :timer.send_interval(1000, :push_message)
 
     {:ok, %{socket: socket, address: address, port: port, rate: rate, message_loop: message_loop}}
