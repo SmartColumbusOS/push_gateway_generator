@@ -4,12 +4,12 @@ defmodule PushGatewayGenerator.Application do
   require Logger
 
   def start(_type, _args) do
-    rate =
-      System.get_env("RATE")
-      |> String.to_integer()
+    rate = (System.get_env("RATE") || "10")
+    |> String.to_integer()
 
-    destination_address = System.get_env("DESTINATION_ADDRESS")
-    destination_port = System.get_env("DESTINATION_PORT")
+    destination_address = System.get_env("DESTINATION_ADDRESS") || "localhost"
+    destination_port = (System.get_env("DESTINATION_PORT") || "5555")
+    |> String.to_integer()
 
     Logger.info(fn -> "Loading message loop from file" end)
 

@@ -9,12 +9,11 @@ defmodule PushGatewayGenerator do
 
   def init(init_args) do
     address =
-      Keyword.get(init_args, :address) ||
-        "localhost"
-        |> String.to_charlist()
+      Keyword.get(init_args, :address)
+      |> String.to_charlist()
 
-    port = Keyword.get(init_args, :port) || 5555
-    rate = Keyword.get(init_args, :rate) || 10
+    port = Keyword.get(init_args, :port)
+    rate = Keyword.get(init_args, :rate)
 
     Logger.info(fn -> "populating message loop with" end)
 
