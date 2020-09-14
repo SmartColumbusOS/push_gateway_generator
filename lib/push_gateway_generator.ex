@@ -48,6 +48,7 @@ defmodule PushGatewayGenerator do
         Jason.encode!(%{"timestamp" => timestamp, "deviceSource" => "udp-source-socket", "payloadData" => message})
       )
     end)
+    Logger.debug(fn -> "done sending #{inspect(rate)} messages to #{inspect(address)}" end)
 
     {:noreply, %{state | message_loop: rest ++ messages}}
   end
