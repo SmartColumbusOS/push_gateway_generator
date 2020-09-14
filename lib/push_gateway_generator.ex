@@ -8,11 +8,10 @@ defmodule PushGatewayGenerator do
   end
 
   def init(init_args) do
-    {:ok, address} =
+    address =
       Keyword.get(init_args, :address) ||
-        "127.0.0.1"
+        "localhost"
         |> String.to_charlist()
-        |> :inet.parse_address()
 
     port = Keyword.get(init_args, :port) || 5555
     rate = Keyword.get(init_args, :rate) || 10
