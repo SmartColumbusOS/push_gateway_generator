@@ -24,7 +24,7 @@ defmodule PushGatewayGenerator do
 
     Logger.info(fn -> "done populating message loop with #{length(message_loop)} messages" end)
 
-    {:ok, socket} = :gen_udp.open(port - 1)
+    {:ok, socket} = :gen_udp.open(0)
 
     send_interval = trunc(1000 / rate)
 
